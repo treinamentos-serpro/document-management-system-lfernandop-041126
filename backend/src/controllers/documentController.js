@@ -1,10 +1,23 @@
 // Controllers de documentos: tratam entrada/saída HTTP e validação básica,
 // delegando as regras de negócio ao service.
 
-const fs = require('fs');
 const documentService = require('../services/documentService');
+const fileStorageRepository = require('../repositories/fileStorageRepository');
 
-function uploadDocument(req, res) {
+// Mapeia o arquivo recebido pelo multer para um DTO neutro: a camada de
+// serviço não conhece a estrutura de req.file.
+function toUploadDto(file, owner) {
+  return {
+    id: file.documentId,
+    storedName: file.filename,
+    originalName: file.originalname,
+    mimeType: file.mimetype,
+    size: file.size,
+    owner,
+  };
+}
+
+function uploadDocument(req, res, next) {
   if (!req.file) {
     return res.status(400).json({ error: 'Arquivo é obrigatório' });
   }
@@ -12,12 +25,17 @@ function uploadDocument(req, res) {
   const owner = typeof req.body.owner === 'string' ? req.body.owner.trim() : '';
   if (!owner) {
     // Remove o arquivo já gravado pelo multer, pois o upload é inválido.
-    fs.unlink(req.file.path, () => {});
+    fileStorageRepository.remove(req.file.filename);
     return res.status(400).json({ error: 'Campo owner é obrigatório' });
   }
 
-  const document = documentService.createDocument({ file: req.file, owner });
-  return res.status(201).json(document);
+  try {
+    const document = documentService.createDocument(toUploadDto(req.file, owner));
+    return res.status(201).json(document);
+  } catch (err) {
+    fileStorageRepository.remove(req.file.filename);
+    return next(err);
+  }
 }
 
 function listDocuments(req, res) {

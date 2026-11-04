@@ -2,7 +2,6 @@
 // extensões e limite de tamanho) e delegam aos controllers.
 
 const crypto = require('crypto');
-const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const multer = require('multer');
@@ -11,15 +10,14 @@ const documentController = require('../controllers/documentController');
 
 const router = express.Router();
 
-// Garante que o diretório de armazenamento local exista.
-fs.mkdirSync(config.storageDir, { recursive: true });
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, config.storageDir),
   filename: (req, file, cb) => {
-    // storedName = `<id><extensão>`; o id (UUID) evita colisões e path traversal.
+    // O id do documento nasce aqui e é propagado via file.documentId:
+    // storedName = `<id><extensão>` (UUID evita colisões e path traversal).
+    file.documentId = crypto.randomUUID();
     const extension = path.extname(file.originalname).toLowerCase();
-    cb(null, `${crypto.randomUUID()}${extension}`);
+    cb(null, `${file.documentId}${extension}`);
   },
 });
 

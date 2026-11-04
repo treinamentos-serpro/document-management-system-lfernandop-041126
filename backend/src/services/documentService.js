@@ -1,9 +1,11 @@
 // Regras de negócio de documentos: criação de metadados, listagem com filtro
 // por dono e localização de documento para download.
+//
+// A camada de serviço recebe DTOs neutros (não conhece multer/HTTP) e delega
+// a persistência aos repositórios de metadados e de arquivos.
 
-const path = require('path');
-const config = require('../config');
 const documentRepository = require('../repositories/documentRepository');
+const fileStorageRepository = require('../repositories/fileStorageRepository');
 
 // Remove o campo interno storedName das respostas da API.
 function toPublicDocument(document) {
@@ -11,18 +13,13 @@ function toPublicDocument(document) {
   return publicDocument;
 }
 
-function createDocument({ file, owner }) {
-  // O id do documento é o nome do arquivo em disco sem a extensão
-  // (storedName = `<id><extensão>`, gerado pelo multer).
-  const extension = path.extname(file.filename);
-  const id = path.basename(file.filename, extension);
-
+function createDocument({ id, storedName, originalName, mimeType, size, owner }) {
   const document = {
     id,
-    originalName: file.originalname,
-    storedName: file.filename,
-    mimeType: file.mimetype,
-    size: file.size,
+    originalName,
+    storedName,
+    mimeType,
+    size,
     uploadedAt: new Date().toISOString(),
     owner,
   };
@@ -32,10 +29,9 @@ function createDocument({ file, owner }) {
 }
 
 function listDocuments({ owner } = {}) {
-  let documents = documentRepository.findAll();
-  if (owner) {
-    documents = documents.filter((document) => document.owner === owner);
-  }
+  const documents = owner
+    ? documentRepository.findAll().filter((document) => document.owner === owner)
+    : documentRepository.findAll();
   return documents.map(toPublicDocument);
 }
 
@@ -46,7 +42,7 @@ function getDocumentForDownload(id) {
   }
   return {
     document: toPublicDocument(document),
-    filePath: path.join(config.storageDir, document.storedName),
+    filePath: fileStorageRepository.resolvePath(document.storedName),
   };
 }
 

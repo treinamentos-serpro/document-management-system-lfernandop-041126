@@ -7,9 +7,13 @@
 const express = require('express');
 const config = require('./config');
 const documentRoutes = require('./routes/documentRoutes');
+const fileStorageRepository = require('./repositories/fileStorageRepository');
 
 const app = express();
 const PORT = config.port;
+
+// Bootstrap de infraestrutura: garante o diretório de armazenamento local.
+fileStorageRepository.ensureStorageDir();
 
 app.use(express.json());
 
