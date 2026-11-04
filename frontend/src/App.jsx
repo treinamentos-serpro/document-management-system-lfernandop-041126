@@ -26,10 +26,16 @@ export default function App() {
   }, [refreshDocuments]);
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: '56rem', margin: '0 auto' }}>
-      <h1>Document Management System</h1>
-      <UploadComponent onUploaded={refreshDocuments} />
-      <section style={{ marginTop: '2rem' }}>
+    <main className="app">
+      <header className="app-header">
+        <h1>Document Management System</h1>
+        <p>Envie, liste e baixe documentos — armazenamento local.</p>
+      </header>
+      <section className="card">
+        <h2>Enviar documento</h2>
+        <UploadComponent onUploaded={refreshDocuments} />
+      </section>
+      <section className="card">
         <h2>Documentos</h2>
         <DocumentList documents={documents} loading={loading} error={error} />
       </section>

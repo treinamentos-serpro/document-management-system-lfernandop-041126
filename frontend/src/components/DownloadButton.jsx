@@ -4,7 +4,7 @@ import { getDownloadUrl } from '../services/documentsApi.js';
 export default function DownloadButton({ documentId }) {
   return (
     <a href={getDownloadUrl(documentId)} download>
-      <button type="button">Baixar</button>
+      <button type="button" className="btn btn-outline">Baixar</button>
     </a>
   );
 }

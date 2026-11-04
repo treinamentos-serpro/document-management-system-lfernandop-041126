@@ -35,24 +35,25 @@ export default function UploadComponent({ onUploaded }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.5rem', maxWidth: '24rem' }}>
-      <h2>Enviar documento</h2>
+    <form onSubmit={handleSubmit} className="upload-form">
       <input
         type="file"
+        className="file-input"
         onChange={(event) => setFile(event.target.files[0] ?? null)}
         disabled={sending}
       />
       <input
         type="text"
+        className="input"
         placeholder="Dono do documento (ex.: maria)"
         value={owner}
         onChange={(event) => setOwner(event.target.value)}
         disabled={sending}
       />
-      <button type="submit" disabled={sending}>
+      <button type="submit" className="btn btn-primary" disabled={sending}>
         {sending ? 'Enviando...' : 'Enviar'}
       </button>
-      {error && <p role="alert" style={{ color: 'crimson', margin: 0 }}>{error}</p>}
+      {error && <p role="alert" className="form-error">{error}</p>}
     </form>
   );
 }
